@@ -44,7 +44,21 @@ end
 function m.projects( wks )
 	if( #wks.projects > 0 ) then
 		p.push "Projects:"
-		for _, prj in ipairs( wks.projects ) do
+
+		-- Build the list in an order such that no project is built before its dependencies
+		local projects = { }
+		local addprojectrecursive
+		addprojectrecursive = function( subprojects )
+			for _, subproject in ipairs( subprojects ) do
+				addprojectrecursive( p.project.getdependencies( subproject ) )
+				table.insert( projects, subproject )
+			end
+		end
+		addprojectrecursive( wks.projects )
+		projects = table.unique( projects )
+
+		for i = #projects,1,-1 do
+			local prj = projects[ i ]
 			local relativelocation = path.getrelative( wks.location, prj.location )
 			local projectpath = path.join( relativelocation, prj.name )
 			p.w( projectpath )
