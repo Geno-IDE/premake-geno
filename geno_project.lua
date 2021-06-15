@@ -50,9 +50,13 @@ end
 
 -- IncludeDirs
 function m.includedirs( prj )
-	if( #prj.includedirs > 0 ) then
+	if( #prj.includedirs > 0 or #prj.sysincludedirs > 0 ) then
 		p.push "IncludeDirs:"
 		for _, dir in ipairs( prj.includedirs ) do
+			local relativepath = path.getrelative( prj.location, dir )
+			p.w( "%s", relativepath )
+		end
+		for _, dir in ipairs( prj.sysincludedirs ) do
 			local relativepath = path.getrelative( prj.location, dir )
 			p.w( "%s", relativepath )
 		end
@@ -62,10 +66,11 @@ end
 
 -- LibraryDirs
 function m.librarydirs( prj )
-	if( #prj.libdirs > 0 ) then
+	local dependencies = p.project.getdependencies( prj, "linkOnly" )
+	if( #dependencies > 0 ) then
 		p.push "LibraryDirs:"
-		for _, dir in ipairs( prj.libdirs ) do
-			local relativepath = path.getrelative( prj.location, dir )
+		for _, dep in ipairs( dependencies ) do
+			local relativepath = path.getrelative( prj.location, dep.location )
 			p.w( "%s", relativepath )
 		end
 		p.pop()
