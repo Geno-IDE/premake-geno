@@ -1,11 +1,48 @@
 local p = premake
+local project = p.project
+local tree = p.tree
 local m = { }
+
+-- Alphabetic Compare
+local function alphabeticCompare( a, b )
+	if not a and b then
+		return true
+	elseif not b and a then
+		return false
+	elseif not a and not b then
+		return true
+	end
+
+	local len = math.min( a:len(), b:len() )
+	for i = 1, len do
+		local CharA = a:sub( i, i )
+		local CharB = b:sub( i, i )
+
+		local LowerCharA = CharA:lower()
+		local LowerCharB = CharB:lower()
+
+		if LowerCharA == LowerCharB then
+			if CharA > CharB then
+				return true
+			elseif CharA < CharB then
+				return false
+			end
+		elseif LowerCharA < LowerCharB then
+			return true
+		elseif LowerCharA > LowerCharB then
+			return false
+		end
+	end
+
+	return a:len() < b:len()
+end
 
 -- Properties
 local props = function()
 	return {
 		m.name,
 		m.kind,
+		m.fileFilters,
 		m.files,
 		m.includedirs,
 		m.librarydirs,
@@ -34,6 +71,71 @@ function m.kind( prj )
 		SharedLib   = "DynamicLibrary",
 	}
 	p.w( "Kind:%s", map[ prj.kind ] )
+end
+
+-- File Filters
+function m.fileFilters( prj )
+	if ( #prj.files > 0 ) then
+		local fileFilters     = {}
+		local fileFilterStack = {}
+		local curFileFilter
+
+		local tr = project.getsourcetree( prj )
+		tree.traverse( tr, {
+			onbranchenter = function( node, depth )
+				table.insert( fileFilterStack, curFileFilter )
+				curFileFilter = node.path
+			end,
+			onbranch = function( node, depth )
+				fileFilters[ node.path ] = {
+					Name  = node.path,
+					Path  = nil,
+					Files = {}
+				}
+			end,
+			onbranchexit = function( node, depth )
+				curFileFilter = table.remove( fileFilterStack )
+			end,
+			onleaf = function( node, depth )
+				if curFileFilter then
+					local fileFilter = fileFilters[ curFileFilter ]
+					if not fileFilter.Path then
+						fileFilter.Path = path.getdirectory( node.relpath )
+					end
+					table.insert( fileFilter.Files, node.relpath )
+				end
+			end
+		} )
+
+		local sortedFileFilters = {}
+		for _, v in pairs( fileFilters ) do
+			if v.Files and #v.Files > 0 then
+				table.sort( v.Files, alphabeticCompare )
+			end
+			table.insert( sortedFileFilters, v )
+		end
+		table.sort( sortedFileFilters, function( a, b )
+			return alphabeticCompare( a.Name, b.Name )
+		end )
+		fileFilters = sortedFileFilters
+
+		p.push "FileFilters:"
+		for _, v in ipairs( fileFilters ) do
+			if v.Files and #v.Files > 0 and v.Path then
+				p.push( "%s:", v.Name )
+				p.w( "Path:%s", v.Path )
+				
+				p.push "Files:"
+				for _, file in ipairs( v.Files ) do
+					p.w( "%s", file )
+				end
+				p.pop()
+
+				p.pop()
+			end
+		end
+		p.pop()
+	end
 end
 
 -- Files
