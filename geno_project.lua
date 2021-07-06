@@ -5,14 +5,6 @@ local m = { }
 
 -- Alphabetic Compare
 local function alphabeticCompare( a, b )
-	if not a and b then
-		return true
-	elseif not b and a then
-		return false
-	elseif not a and not b then
-		return true
-	end
-
 	local len = math.min( a:len(), b:len() )
 	for i = 1, len do
 		local CharA = a:sub( i, i )
