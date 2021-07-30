@@ -133,11 +133,38 @@ end
 -- Files
 function m.files( prj )
 	if( #prj.files > 0 ) then
+		local firstconfig = p.project.getfirstconfig( prj )
+
 		p.push "Files:"
 
 		tree.traverse( project.getsourcetree( prj ), {
 			onleaf = function( node, depth )
-				p.w( "%s", node.relpath )
+				local fcfg = p.fileconfig.getconfig( node, firstconfig )
+
+				if( p.fileconfig.hasCustomBuildRule( fcfg ) ) then
+					p.push( "%s:", node.relpath )
+
+					if( fcfg.buildmessage ) then
+						p.w( "Message:%s", fcfg.buildmessage )
+					end
+
+					p.push "Commands:"
+					for i,command in ipairs( fcfg.buildcommands ) do
+						p.w( "%s", command )
+					end
+					p.pop()
+
+					local relativeOutputs = p.project.getrelative( prj, fcfg.buildoutputs )
+					p.push "OutputFiles:"
+					for i,output in ipairs( relativeOutputs ) do
+						p.w( "%s", output )
+					end
+					p.pop()
+
+					p.pop()
+				else
+					p.w( "%s", node.relpath )
+				end
 			end,
 		} )
 
