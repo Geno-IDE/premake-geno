@@ -134,10 +134,13 @@ end
 function m.files( prj )
 	if( #prj.files > 0 ) then
 		p.push "Files:"
-		for _, file in ipairs( prj.files ) do
-			local relativepath = path.getrelative( prj.location, file )
-			p.w( "%s", relativepath )
-		end
+
+		tree.traverse( project.getsourcetree( prj ), {
+			onleaf = function( node, depth )
+				p.w( "%s", node.relpath )
+			end,
+		} )
+
 		p.pop()
 	end
 end
