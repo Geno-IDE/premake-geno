@@ -25,7 +25,6 @@ newaction {
 	valid_tools = {
 		cc = {
 			"msc",
-			"clang",
 			"gcc",
 		}
 	},
