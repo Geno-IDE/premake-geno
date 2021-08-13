@@ -61,6 +61,7 @@ function m.kind( prj )
 		ConsoleApp  = "Application",
 		StaticLib   = "StaticLibrary",
 		SharedLib   = "DynamicLibrary",
+		Utility     = "Utility",
 	}
 	p.w( "Kind:%s", map[ prj.kind ] )
 end

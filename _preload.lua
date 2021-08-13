@@ -17,6 +17,7 @@ newaction {
 		"WindowedApp",
 		"StaticLib",
 		"SharedLib",
+		"Utility",
 	},
 	valid_languages = {
 		"C",
