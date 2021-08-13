@@ -27,7 +27,10 @@ function m.matrix( wks )
 
 	p.push "Platforms:"
 	for _, platform in ipairs( wks.platforms ) do
-		p.w( "%s", platform )
+		p.push( "%s:", platform )
+		-- TODO: Override this per-project based on 'toolset'
+		p.w( "Compiler:%s", iif( os.istarget( "windows" ), "MSVC", "GCC" ) )
+		p.pop()
 	end
 	p.pop()
 
